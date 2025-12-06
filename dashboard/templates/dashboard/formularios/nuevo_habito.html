@@ -1,0 +1,31 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Nuevo Hábito{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>🔥 Nuevo Hábito</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Nombre</label>
+        <input name="nombre" type="text" required>
+
+        <label>Tipo</label>
+        <select name="tipo">
+            <option value="SALUD">Salud</option>
+            <option value="ESTUDIO">Estudio</option>
+            <option value="OTRO">Otro</option>
+        </select>
+
+        <label>Meta diaria</label>
+        <input name="meta_diaria" type="number" min="1">
+
+        <label>
+            <input type="checkbox" name="activo"> Hábito activo
+        </label>
+
+        <button type="submit">Guardar Hábito</button>
+    </form>
+</div>
+{% endblock %}

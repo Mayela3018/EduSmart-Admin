@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EduSmart Admin{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>🌸 EduSmart</h2>
+
+    <a href="/dashboard/">🏠 Inicio</a>
+    <a href="/dashboard/usuarios/">👥 Usuarios</a>
+    <a href="/dashboard/tareas/">📋 Tareas</a>
+    <a href="/dashboard/eventos/">📅 Eventos</a>
+
+    <hr style="border: 0.5px solid #ffffff33; margin: 15px 0;">
+
+    <a href="/logout/">🚪 Cerrar Sesión</a>
+
+    <a href="/admin/">⚙️ Admin Django</a>
+</div>
+
+<div class="content">
+    <!-- Mensajes flash -->
+    {% if messages %}
+    <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+        <div style="padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; 
+                    background: {% if message.tags == 'success' %}#d1fae5{% elif message.tags == 'error' %}#fee2e2{% else %}#e0f2fe{% endif %}; 
+                    color: {% if message.tags == 'success' %}#065f46{% elif message.tags == 'error' %}#991b1b{% else %}#0c4a6e{% endif %}; 
+                    border-left: 4px solid {% if message.tags == 'success' %}#10b981{% elif message.tags == 'error' %}#dc2626{% else %}#0284c7{% endif %};">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Contenido de cada página -->
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

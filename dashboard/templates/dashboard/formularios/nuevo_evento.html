@@ -1,0 +1,33 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Nuevo Evento{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>📅 Nuevo Evento</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Título</label>
+        <input type="text" name="titulo" required>
+
+        <label>Descripción</label>
+        <textarea name="descripcion"></textarea>
+
+        <label>Categoría</label>
+        <select name="categoria">
+            <option value="CLASE">Clase</option>
+            <option value="EXAMEN">Examen</option>
+            <option value="PERSONAL">Personal</option>
+        </select>
+
+        <label>Fecha</label>
+        <input type="date" name="fecha" required>
+
+        <label>Hora</label>
+        <input type="time" name="hora">
+
+        <button type="submit">Guardar Evento</button>
+    </form>
+</div>
+{% endblock %}

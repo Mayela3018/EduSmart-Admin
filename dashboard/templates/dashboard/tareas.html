@@ -1,0 +1,29 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Tareas{% endblock %}
+
+{% block content %}
+<h1>📋 Lista de Tareas</h1>
+    <a class="btn-add" href="/dashboard/tareas/nuevo/">➕ Agregar tarea</a>
+
+
+<table class="tabla">
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Prioridad</th>
+            <th>Estado</th>
+            <th>Fecha Límite</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tareas %}
+        <tr>
+            <td>{{ t.titulo }}</td>
+            <td>{{ t.prioridad }}</td>
+            <td>{{ t.completed|yesno:"Completada,Pendiente" }}</td>
+            <td>{{ t.fecha_limite }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

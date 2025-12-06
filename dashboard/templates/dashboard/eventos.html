@@ -1,0 +1,29 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Eventos{% endblock %}
+
+{% block content %}
+<h1>📅 Eventos Registrados</h1>
+    <a class="btn-add" href="/dashboard/eventos/nuevo/">➕ Agregar Evento</a>
+
+
+<table class="tabla">
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Categoría</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in eventos %}
+        <tr>
+            <td>{{ e.titulo }}</td>
+            <td>{{ e.categoria }}</td>
+            <td>{{ e.fecha }}</td>
+            <td>{{ e.hora }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

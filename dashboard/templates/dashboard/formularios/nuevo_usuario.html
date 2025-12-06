@@ -1,0 +1,26 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Nuevo Usuario{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>👤 Nuevo Usuario</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label>Nombre</label>
+        <input name="name" type="text" required>
+
+        <label>Email</label>
+        <input name="email" type="email" required>
+
+        <label>Tipo</label>
+        <select name="tipo">
+            <option value="ESTUDIANTE">Estudiante</option>
+            <option value="PROFESOR">Profesor</option>
+        </select>
+
+        <button type="submit">Crear Usuario</button>
+    </form>
+</div>
+{% endblock %}

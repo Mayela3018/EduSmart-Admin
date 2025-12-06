@@ -1,0 +1,34 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Dashboard - EduSmart{% endblock %}
+
+{% block content %}
+
+<h1 style="font-size: 32px; margin-bottom: 20px;">
+    📊 Resumen General
+</h1>
+
+<div class="card-container">
+
+    <div class="card">
+        <h3>👥 Usuarios Registrados</h3>
+        <p class="number">{{ total_users }}</p>
+    </div>
+
+    <div class="card">
+        <h3>📋 Total de Tareas</h3>
+        <p class="number">{{ total_tasks }}</p>
+    </div>
+
+    <div class="card">
+        <h3>📅 Eventos Registrados</h3>
+        <p class="number">{{ total_events }}</p>
+    </div>
+
+    <div class="card">
+        <h3>💪 Hábitos Activos</h3>
+        <p class="number">{{ active_habits }}</p>
+    </div>
+
+</div>
+
+{% endblock %}

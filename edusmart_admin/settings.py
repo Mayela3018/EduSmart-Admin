@@ -58,8 +58,8 @@ ROOT_URLCONF = 'edusmart_admin.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
+        'DIRS': [ BASE_DIR / "templates" ],  # solo una carpeta global
+        'APP_DIRS': True,                    # activa búsqueda dentro de apps
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -70,6 +70,8 @@ TEMPLATES = [
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = 'edusmart_admin.wsgi.application'
 
@@ -160,3 +162,11 @@ LOGGING = {
         },
     },
 }
+
+
+# Al final del archivo settings.py, agrega:
+
+# Login Configuration
+LOGIN_URL = '/'  # Tu página de login está en la raíz
+LOGIN_REDIRECT_URL = '/dashboard/'  # Después de login, ir al dashboard
+LOGOUT_REDIRECT_URL = '/'  # Después de logout, volver al login
