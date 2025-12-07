@@ -2,9 +2,15 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.http import HttpResponse
+import csv
+
+# Para Excel
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
 
 from .models import Users, Tasks, Events, Habits
 
@@ -258,3 +264,258 @@ def habito_nuevo(request):
             messages.error(request, f"Error al crear hábito: {str(e)}")
 
     return render(request, "dashboard/formularios/nuevo_habito.html")
+
+
+# ============================
+#    EXPORTACIÓN A EXCEL
+# ============================
+
+@login_required(login_url="/")
+def export_usuarios_excel(request):
+    """Exportar usuarios a Excel"""
+    try:
+        # Crear workbook
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Usuarios"
+        
+        # Estilos
+        header_fill = PatternFill(start_color="6366F1", end_color="6366F1", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=12)
+        
+        # Headers
+        headers = ['ID', 'Nombre', 'Email', 'Tipo', 'Fecha de Registro']
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Datos
+        usuarios = Users.objects.all().order_by('-created_at')
+        for row, usuario in enumerate(usuarios, start=2):
+            ws.cell(row=row, column=1, value=usuario.id)
+            ws.cell(row=row, column=2, value=usuario.name)
+            ws.cell(row=row, column=3, value=usuario.email)
+            ws.cell(row=row, column=4, value=usuario.tipo)
+            ws.cell(row=row, column=5, value=usuario.created_at.strftime('%d/%m/%Y %H:%M'))
+        
+        # Ajustar ancho de columnas
+        ws.column_dimensions['A'].width = 10
+        ws.column_dimensions['B'].width = 30
+        ws.column_dimensions['C'].width = 35
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 20
+        
+        # Preparar respuesta
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f'usuarios_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Error al exportar: {str(e)}")
+        return redirect("/dashboard/usuarios/")
+
+
+@login_required(login_url="/")
+def export_tareas_excel(request):
+    """Exportar tareas a Excel"""
+    try:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Tareas"
+        
+        header_fill = PatternFill(start_color="6366F1", end_color="6366F1", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=12)
+        
+        headers = ['ID', 'Título', 'Descripción', 'Prioridad', 'Estado', 'Fecha Límite', 'Creado']
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        tareas = Tasks.objects.all().order_by('-created_at')
+        for row, tarea in enumerate(tareas, start=2):
+            ws.cell(row=row, column=1, value=tarea.id)
+            ws.cell(row=row, column=2, value=tarea.titulo)
+            ws.cell(row=row, column=3, value=tarea.descripcion or '')
+            ws.cell(row=row, column=4, value=tarea.prioridad)
+            ws.cell(row=row, column=5, value='Completada' if tarea.completed else 'Pendiente')
+            ws.cell(row=row, column=6, value=tarea.fecha_limite.strftime('%d/%m/%Y') if tarea.fecha_limite else '')
+            ws.cell(row=row, column=7, value=tarea.created_at.strftime('%d/%m/%Y %H:%M'))
+        
+        ws.column_dimensions['A'].width = 10
+        ws.column_dimensions['B'].width = 35
+        ws.column_dimensions['C'].width = 50
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 15
+        ws.column_dimensions['F'].width = 15
+        ws.column_dimensions['G'].width = 20
+        
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f'tareas_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Error al exportar: {str(e)}")
+        return redirect("/dashboard/tareas/")
+
+
+@login_required(login_url="/")
+def export_eventos_excel(request):
+    """Exportar eventos a Excel"""
+    try:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Eventos"
+        
+        header_fill = PatternFill(start_color="6366F1", end_color="6366F1", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=12)
+        
+        headers = ['ID', 'Título', 'Descripción', 'Categoría', 'Fecha', 'Hora', 'Creado']
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        eventos = Events.objects.all().order_by('-fecha')
+        for row, evento in enumerate(eventos, start=2):
+            ws.cell(row=row, column=1, value=evento.id)
+            ws.cell(row=row, column=2, value=evento.titulo)
+            ws.cell(row=row, column=3, value=evento.descripcion or '')
+            ws.cell(row=row, column=4, value=evento.categoria)
+            ws.cell(row=row, column=5, value=evento.fecha.strftime('%d/%m/%Y'))
+            ws.cell(row=row, column=6, value=evento.hora.strftime('%H:%M') if evento.hora else '')
+            ws.cell(row=row, column=7, value=evento.created_at.strftime('%d/%m/%Y %H:%M'))
+        
+        ws.column_dimensions['A'].width = 10
+        ws.column_dimensions['B'].width = 35
+        ws.column_dimensions['C'].width = 50
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 15
+        ws.column_dimensions['F'].width = 12
+        ws.column_dimensions['G'].width = 20
+        
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f'eventos_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Error al exportar: {str(e)}")
+        return redirect("/dashboard/eventos/")
+
+
+# ============================
+#    EXPORTACIÓN A CSV
+# ============================
+
+@login_required(login_url="/")
+def export_usuarios_csv(request):
+    """Exportar usuarios a CSV"""
+    try:
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        filename = f'usuarios_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # BOM para que Excel reconozca UTF-8
+        response.write('\ufeff')
+        
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Nombre', 'Email', 'Tipo', 'Fecha de Registro'])
+        
+        usuarios = Users.objects.all().order_by('-created_at')
+        for usuario in usuarios:
+            writer.writerow([
+                usuario.id,
+                usuario.name,
+                usuario.email,
+                usuario.tipo,
+                usuario.created_at.strftime('%d/%m/%Y %H:%M')
+            ])
+        
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Error al exportar: {str(e)}")
+        return redirect("/dashboard/usuarios/")
+
+
+@login_required(login_url="/")
+def export_tareas_csv(request):
+    """Exportar tareas a CSV"""
+    try:
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        filename = f'tareas_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        response.write('\ufeff')
+        
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Título', 'Descripción', 'Prioridad', 'Estado', 'Fecha Límite', 'Creado'])
+        
+        tareas = Tasks.objects.all().order_by('-created_at')
+        for tarea in tareas:
+            writer.writerow([
+                tarea.id,
+                tarea.titulo,
+                tarea.descripcion or '',
+                tarea.prioridad,
+                'Completada' if tarea.completed else 'Pendiente',
+                tarea.fecha_limite.strftime('%d/%m/%Y') if tarea.fecha_limite else '',
+                tarea.created_at.strftime('%d/%m/%Y %H:%M')
+            ])
+        
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Error al exportar: {str(e)}")
+        return redirect("/dashboard/tareas/")
+
+
+@login_required(login_url="/")
+def export_eventos_csv(request):
+    """Exportar eventos a CSV"""
+    try:
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        filename = f'eventos_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        response.write('\ufeff')
+        
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Título', 'Descripción', 'Categoría', 'Fecha', 'Hora', 'Creado'])
+        
+        eventos = Events.objects.all().order_by('-fecha')
+        for evento in eventos:
+            writer.writerow([
+                evento.id,
+                evento.titulo,
+                evento.descripcion or '',
+                evento.categoria,
+                evento.fecha.strftime('%d/%m/%Y'),
+                evento.hora.strftime('%H:%M') if evento.hora else '',
+                evento.created_at.strftime('%d/%m/%Y %H:%M')
+            ])
+        
+        return response
+        
+    except Exception as e:
+        messages.error(request, f"Error al exportar: {str(e)}")
+        return redirect("/dashboard/eventos/")

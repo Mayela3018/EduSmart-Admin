@@ -2,28 +2,73 @@
 {% block title %}Eventos{% endblock %}
 
 {% block content %}
-<h1>📅 Eventos Registrados</h1>
-    <a class="btn-add" href="/dashboard/eventos/nuevo/">➕ Agregar Evento</a>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <h1 style="margin: 0;">📅 Eventos Registrados</h1>
+    
+    <div style="display: flex; gap: 10px;">
+        <!-- Botón Exportar Excel -->
+        <a href="{% url 'export_eventos_excel' %}" style="
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            padding: 14px 24px; border-radius: 12px; color: white; font-weight: 600; 
+            font-size: 15px; text-decoration: none; display: flex; align-items: center; 
+            gap: 8px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16, 185, 129, 0.4)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(16, 185, 129, 0.3)'">
+            📊 Excel
+        </a>
+        
+        <!-- Botón Exportar CSV -->
+        <a href="{% url 'export_eventos_csv' %}" style="
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); 
+            padding: 14px 24px; border-radius: 12px; color: white; font-weight: 600; 
+            font-size: 15px; text-decoration: none; display: flex; align-items: center; 
+            gap: 8px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(14, 165, 233, 0.4)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(14, 165, 233, 0.3)'">
+            📄 CSV
+        </a>
+        
+        <!-- Botón Agregar -->
+        <a class="btn-add" href="/dashboard/eventos/nuevo/">➕ Agregar Evento</a>
+    </div>
+</div>
 
+<div class="tabla-container">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Categoría</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Creado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in eventos %}
+            <tr>
+                <td><strong>{{ e.titulo }}</strong></td>
+                <td>
+                    <span style="background: 
+                        {% if e.categoria == 'EXAMEN' %}#fee2e2{% elif e.categoria == 'CLASE' %}#dbeafe{% else %}#f3e8ff{% endif %}; 
+                        color: {% if e.categoria == 'EXAMEN' %}#991b1b{% elif e.categoria == 'CLASE' %}#1e40af{% else %}#6b21a8{% endif %}; 
+                        padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        {{ e.categoria }}
+                    </span>
+                </td>
+                <td>{{ e.fecha|date:"d/m/Y" }}</td>
+                <td>{{ e.hora|time:"H:i"|default:"Sin hora" }}</td>
+                <td>{{ e.created_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px;">
+                    No hay eventos registrados
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-<table class="tabla">
-    <thead>
-        <tr>
-            <th>Título</th>
-            <th>Categoría</th>
-            <th>Fecha</th>
-            <th>Hora</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for e in eventos %}
-        <tr>
-            <td>{{ e.titulo }}</td>
-            <td>{{ e.categoria }}</td>
-            <td>{{ e.fecha }}</td>
-            <td>{{ e.hora }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 {% endblock %}

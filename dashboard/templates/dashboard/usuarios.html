@@ -2,28 +2,72 @@
 {% block title %}Usuarios{% endblock %}
 
 {% block content %}
-<h1>👥 Usuarios Registrados</h1>
-    <a class="btn-add" href="/dashboard/usuarios/nuevo/">➕ Agregar usuario</a>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+    <h1 style="margin: 0;">👥 Usuarios Registrados</h1>
+    
+    <div style="display: flex; gap: 10px;">
+        <!-- Botón Exportar Excel -->
+        <a href="{% url 'export_usuarios_excel' %}" style="
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            padding: 14px 24px; border-radius: 12px; color: white; font-weight: 600; 
+            font-size: 15px; text-decoration: none; display: flex; align-items: center; 
+            gap: 8px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(16, 185, 129, 0.4)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(16, 185, 129, 0.3)'">
+            📊 Excel
+        </a>
+        
+        <!-- Botón Exportar CSV -->
+        <a href="{% url 'export_usuarios_csv' %}" style="
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); 
+            padding: 14px 24px; border-radius: 12px; color: white; font-weight: 600; 
+            font-size: 15px; text-decoration: none; display: flex; align-items: center; 
+            gap: 8px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);"
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(14, 165, 233, 0.4)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(14, 165, 233, 0.3)'">
+            📄 CSV
+        </a>
+        
+        <!-- Botón Agregar -->
+        <a class="btn-add" href="/dashboard/usuarios/nuevo/">➕ Agregar Usuario</a>
+    </div>
+</div>
 
+<div class="tabla-container">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Tipo</th>
+                <th>Fecha Registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.name }}</td>
+                <td>{{ u.email }}</td>
+                <td>
+                    <span style="background: {% if u.tipo == 'ESTUDIANTE' %}#dbeafe{% else %}#fef3c7{% endif %}; 
+                        color: {% if u.tipo == 'ESTUDIANTE' %}#1e40af{% else %}#92400e{% endif %}; 
+                        padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        {{ u.tipo }}
+                    </span>
+                </td>
+                <td>{{ u.created_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px;">
+                    No hay usuarios registrados
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-<table class="tabla">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Tipo</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for u in usuarios %}
-        <tr>
-            <td>{{ u.id }}</td>
-            <td>{{ u.name }}</td>
-            <td>{{ u.email }}</td>
-            <td>{{ u.tipo }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 {% endblock %}

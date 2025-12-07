@@ -7,28 +7,231 @@
     📊 Resumen General
 </h1>
 
+<!-- Tarjetas de métricas -->
 <div class="card-container">
-
     <div class="card">
         <h3>👥 Usuarios Registrados</h3>
         <p class="number">{{ total_users }}</p>
+        <small style="color: #10b981;">+{{ new_users_week }} esta semana</small>
     </div>
 
     <div class="card">
         <h3>📋 Total de Tareas</h3>
         <p class="number">{{ total_tasks }}</p>
+        <small style="color: #6366f1;">{{ completion_rate }}% completadas</small>
     </div>
 
     <div class="card">
         <h3>📅 Eventos Registrados</h3>
         <p class="number">{{ total_events }}</p>
+        <small style="color: #f59e0b;">{{ events_this_week }} esta semana</small>
     </div>
 
     <div class="card">
         <h3>💪 Hábitos Activos</h3>
         <p class="number">{{ active_habits }}</p>
+        <small style="color: #8b5cf6;">{{ inactive_habits }} inactivos</small>
+    </div>
+</div>
+
+<!-- Gráficos estadísticos -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin-top: 40px;">
+    
+    <!-- Gráfico de Tareas por Prioridad -->
+    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);">
+        <h3 style="margin-bottom: 20px; color: #1e293b; font-size: 20px;">📊 Tareas por Prioridad</h3>
+        <canvas id="tasksPriorityChart"></canvas>
     </div>
 
+    <!-- Gráfico de Eventos por Categoría -->
+    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);">
+        <h3 style="margin-bottom: 20px; color: #1e293b; font-size: 20px;">📅 Eventos por Categoría</h3>
+        <canvas id="eventsCategoryChart"></canvas>
+    </div>
+
+    <!-- Gráfico de Tareas Completadas vs Pendientes -->
+    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);">
+        <h3 style="margin-bottom: 20px; color: #1e293b; font-size: 20px;">✅ Estado de Tareas</h3>
+        <canvas id="tasksStatusChart"></canvas>
+    </div>
+
+    <!-- Gráfico de Actividad Semanal -->
+    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);">
+        <h3 style="margin-bottom: 20px; color: #1e293b; font-size: 20px;">📈 Actividad Semanal</h3>
+        <canvas id="weeklyActivityChart"></canvas>
+    </div>
 </div>
+
+<!-- Tablas de próximos eventos y tareas -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-top: 40px;">
+    
+    <!-- Próximas Tareas -->
+    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);">
+        <h3 style="margin-bottom: 20px; color: #1e293b; font-size: 20px;">📋 Próximas Tareas</h3>
+        {% if upcoming_tasks %}
+        <div style="max-height: 300px; overflow-y: auto;">
+            {% for task in upcoming_tasks %}
+            <div style="padding: 12px; border-left: 3px solid 
+                {% if task.prioridad == 'ALTA' %}#ef4444
+                {% elif task.prioridad == 'MEDIA' %}#f59e0b
+                {% else %}#10b981{% endif %}; 
+                background: #f8fafc; margin-bottom: 10px; border-radius: 8px;">
+                <strong>{{ task.titulo }}</strong>
+                <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                    🗓️ {{ task.fecha_limite|date:"d/m/Y" }} | Prioridad: {{ task.prioridad }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #94a3b8; text-align: center;">No hay tareas próximas</p>
+        {% endif %}
+    </div>
+
+    <!-- Próximos Eventos -->
+    <div style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);">
+        <h3 style="margin-bottom: 20px; color: #1e293b; font-size: 20px;">📅 Próximos Eventos</h3>
+        {% if upcoming_events %}
+        <div style="max-height: 300px; overflow-y: auto;">
+            {% for event in upcoming_events %}
+            <div style="padding: 12px; border-left: 3px solid 
+                {% if event.categoria == 'EXAMEN' %}#ef4444
+                {% elif event.categoria == 'CLASE' %}#6366f1
+                {% else %}#8b5cf6{% endif %}; 
+                background: #f8fafc; margin-bottom: 10px; border-radius: 8px;">
+                <strong>{{ event.titulo }}</strong>
+                <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                    🗓️ {{ event.fecha|date:"d/m/Y" }} {% if event.hora %}⏰ {{ event.hora|time:"H:i" }}{% endif %} | {{ event.categoria }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #94a3b8; text-align: center;">No hay eventos próximos</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Script de Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// Configuración general de los gráficos
+Chart.defaults.font.family = 'Inter, sans-serif';
+Chart.defaults.color = '#64748b';
+
+// Gráfico de Tareas por Prioridad
+const tasksPriorityCtx = document.getElementById('tasksPriorityChart').getContext('2d');
+new Chart(tasksPriorityCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Alta', 'Media', 'Baja'],
+        datasets: [{
+            data: [
+                {{ tasks_by_priority.ALTA }},
+                {{ tasks_by_priority.MEDIA }},
+                {{ tasks_by_priority.BAJA }}
+            ],
+            backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 15, font: { size: 13 } }
+            }
+        }
+    }
+});
+
+// Gráfico de Eventos por Categoría
+const eventsCategoryCtx = document.getElementById('eventsCategoryChart').getContext('2d');
+new Chart(eventsCategoryCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Clase', 'Examen', 'Personal'],
+        datasets: [{
+            label: 'Eventos',
+            data: [
+                {{ events_by_category.CLASE }},
+                {{ events_by_category.EXAMEN }},
+                {{ events_by_category.PERSONAL }}
+            ],
+            backgroundColor: ['#6366f1', '#ef4444', '#8b5cf6'],
+            borderRadius: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { 
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        }
+    }
+});
+
+// Gráfico de Estado de Tareas
+const tasksStatusCtx = document.getElementById('tasksStatusChart').getContext('2d');
+new Chart(tasksStatusCtx, {
+    type: 'pie',
+    data: {
+        labels: ['Completadas', 'Pendientes'],
+        datasets: [{
+            data: [{{ completed_tasks }}, {{ pending_tasks }}],
+            backgroundColor: ['#10b981', '#f59e0b'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 15, font: { size: 13 } }
+            }
+        }
+    }
+});
+
+// Gráfico de Actividad Semanal
+const weeklyActivityCtx = document.getElementById('weeklyActivityChart').getContext('2d');
+new Chart(weeklyActivityCtx, {
+    type: 'line',
+    data: {
+        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        datasets: [{
+            label: 'Tareas',
+            data: [12, 19, 15, 25, 22, 18, 10], // Esto podrías calcularlo dinámicamente
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { 
+                beginAtZero: true,
+                ticks: { stepSize: 5 }
+            }
+        }
+    }
+});
+</script>
 
 {% endblock %}

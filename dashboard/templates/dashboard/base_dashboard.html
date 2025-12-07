@@ -6,37 +6,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EduSmart Admin{% endblock %}</title>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS Principal -->
     <link rel="stylesheet" href="{% static 'dashboard/dashboard.css' %}">
+    
+    <!-- CSS Extra por página -->
     {% block extra_css %}{% endblock %}
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌸</text></svg>">
 </head>
 
 <body>
 
+<!-- Sidebar de navegación -->
 <div class="sidebar">
     <h2>🌸 EduSmart</h2>
 
-    <a href="/dashboard/">🏠 Inicio</a>
-    <a href="/dashboard/usuarios/">👥 Usuarios</a>
-    <a href="/dashboard/tareas/">📋 Tareas</a>
-    <a href="/dashboard/eventos/">📅 Eventos</a>
+    <a href="/dashboard/" class="{% if request.path == '/dashboard/' %}active{% endif %}">
+        🏠 Inicio
+    </a>
+    <a href="/dashboard/usuarios/" class="{% if '/usuarios/' in request.path %}active{% endif %}">
+        👥 Usuarios
+    </a>
+    <a href="/dashboard/tareas/" class="{% if '/tareas/' in request.path %}active{% endif %}">
+        📋 Tareas
+    </a>
+    <a href="/dashboard/eventos/" class="{% if '/eventos/' in request.path %}active{% endif %}">
+        📅 Eventos
+    </a>
 
     <hr style="border: 0.5px solid #ffffff33; margin: 15px 0;">
 
+    <!-- Info del usuario -->
+    {% if user.is_authenticated %}
+    <div style="padding: 12px 18px; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 10px;">
+        <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Sesión activa</div>
+        <div style="font-size: 14px; color: white; font-weight: 600;">{{ user.username }}</div>
+    </div>
+    {% endif %}
+
     <a href="/logout/">🚪 Cerrar Sesión</a>
 
-    <a href="/admin/">⚙️ Admin Django</a>
+    <a href="/admin/" target="_blank">⚙️ Admin Django</a>
 </div>
 
+<!-- Contenido principal -->
 <div class="content">
-    <!-- Mensajes flash -->
+    <!-- Mensajes flash con animación -->
     {% if messages %}
     <div style="margin-bottom: 20px;">
         {% for message in messages %}
-        <div style="padding: 14px 18px; border-radius: 12px; margin-bottom: 10px; 
-                    background: {% if message.tags == 'success' %}#d1fae5{% elif message.tags == 'error' %}#fee2e2{% else %}#e0f2fe{% endif %}; 
-                    color: {% if message.tags == 'success' %}#065f46{% elif message.tags == 'error' %}#991b1b{% else %}#0c4a6e{% endif %}; 
-                    border-left: 4px solid {% if message.tags == 'success' %}#10b981{% elif message.tags == 'error' %}#dc2626{% else %}#0284c7{% endif %};">
-            {{ message }}
+        <div class="message-alert message-{{ message.tags }}" style="
+            padding: 14px 18px; 
+            border-radius: 12px; 
+            margin-bottom: 10px; 
+            background: {% if message.tags == 'success' %}#d1fae5{% elif message.tags == 'error' %}#fee2e2{% else %}#e0f2fe{% endif %}; 
+            color: {% if message.tags == 'success' %}#065f46{% elif message.tags == 'error' %}#991b1b{% else %}#0c4a6e{% endif %}; 
+            border-left: 4px solid {% if message.tags == 'success' %}#10b981{% elif message.tags == 'error' %}#dc2626{% else %}#0284c7{% endif %};
+            animation: slideInDown 0.4s ease-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            ">
+            <span style="display: flex; align-items: center; gap: 8px;">
+                {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% else %}ℹ️{% endif %}
+                {{ message }}
+            </span>
+            <button onclick="this.parentElement.remove()" style="
+                background: none;
+                border: none;
+                color: inherit;
+                font-size: 18px;
+                cursor: pointer;
+                opacity: 0.6;
+                transition: opacity 0.2s;
+                padding: 0 8px;
+                " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+                ✕
+            </button>
         </div>
         {% endfor %}
     </div>
@@ -45,6 +98,74 @@
     <!-- Contenido de cada página -->
     {% block content %}{% endblock %}
 </div>
+
+<!-- Scripts globales -->
+<script>
+// Auto-cerrar mensajes después de 5 segundos
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = document.querySelectorAll('.message-alert');
+    messages.forEach(function(message) {
+        setTimeout(function() {
+            message.style.animation = 'slideOutUp 0.4s ease-out';
+            setTimeout(function() {
+                message.remove();
+            }, 400);
+        }, 5000);
+    });
+});
+
+// Confirmar antes de cerrar sesión
+document.querySelector('a[href="/logout/"]')?.addEventListener('click', function(e) {
+    if (!confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        e.preventDefault();
+    }
+});
+</script>
+
+<!-- Estilos de animación -->
+<style>
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* Estilos para links activos en sidebar */
+.sidebar a.active {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Scroll suave */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loader para cuando carga la página */
+.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+</style>
+
+<!-- Scripts extra por página -->
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

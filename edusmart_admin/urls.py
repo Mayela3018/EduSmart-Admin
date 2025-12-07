@@ -21,6 +21,16 @@ urlpatterns = [
     path("dashboard/usuarios/nuevo/", views.usuario_nuevo, name="usuario_nuevo"),
     path("dashboard/habitos/nuevo/", views.habito_nuevo, name="habito_nuevo"),
 
+    # 📥 Exportaciones Excel
+    path("dashboard/usuarios/export/excel/", views.export_usuarios_excel, name="export_usuarios_excel"),
+    path("dashboard/tareas/export/excel/", views.export_tareas_excel, name="export_tareas_excel"),
+    path("dashboard/eventos/export/excel/", views.export_eventos_excel, name="export_eventos_excel"),
+    
+    # 📥 Exportaciones CSV
+    path("dashboard/usuarios/export/csv/", views.export_usuarios_csv, name="export_usuarios_csv"),
+    path("dashboard/tareas/export/csv/", views.export_tareas_csv, name="export_tareas_csv"),
+    path("dashboard/eventos/export/csv/", views.export_eventos_csv, name="export_eventos_csv"),
+
     # ⚙️ Admin Django original
     path("admin/", admin.site.urls),
 ]
